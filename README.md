@@ -1,0 +1,2 @@
+# jojiVM
+VM in Go
