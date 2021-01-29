@@ -4,6 +4,7 @@ package jojivm
 
 import (
 	"errors"
+	"fmt"
 	"math"
 	"strconv"
 )
@@ -20,12 +21,38 @@ type JojiObject interface {
 	GetInt() (int64, error)
 	GetStr() (string, error)
 	GetFloat() (float64, error)
-	GetField(name string) (JojiObject, error)
+	GetField(name string) (*JojiObject, error)
 	GetType() (*JojiType, error)
 	SetInt(value int64) error
 	SetStr(value string) error
 	SetFloat(value float64) error
-	SetField(name string, value JojiObject) error
+	SetField(name string, value *JojiObject) error
+}
+
+//Static primitive type definitions
+
+var JojiStringType JojiType = JojiType{
+	SupportsInt:   true,
+	SupportsStr:   true,
+	SupportsFloat: true,
+	IsDictType:    false,
+	Fields:        nil,
+}
+
+var JojiIntType JojiType = JojiType{
+	SupportsInt:   true,
+	SupportsStr:   true,
+	SupportsFloat: true,
+	IsDictType:    false,
+	Fields:        nil,
+}
+
+var JojiFloatType JojiType = JojiType{
+	SupportsInt:   true,
+	SupportsStr:   true,
+	SupportsFloat: true,
+	IsDictType:    false,
+	Fields:        nil,
 }
 
 //Builtin JojiString type begins here
@@ -35,13 +62,7 @@ type JojiString struct {
 }
 
 func (obj JojiString) GetType() (*JojiType, error) {
-	return &JojiType{
-		SupportsInt:   true,
-		SupportsStr:   true,
-		SupportsFloat: true,
-		IsDictType:    false,
-		Fields:        nil,
-	}, nil
+	return &JojiStringType, nil
 }
 
 func (obj *JojiString) GetStr() (string, error) {
@@ -75,11 +96,11 @@ func (obj *JojiString) SetFloat(value float64) error {
 	return nil
 }
 
-func (obj *JojiString) GetField(name string) (JojiObject, error) {
+func (obj *JojiString) GetField(name string) (*JojiObject, error) {
 	return nil, errors.New("jojiVM: Error: strings do not support fields")
 }
 
-func (obj *JojiString) SetField(name string, value JojiObject) error {
+func (obj *JojiString) SetField(name string, value *JojiObject) error {
 	return errors.New("jojiVM: Error: strings do not support fields")
 }
 
@@ -91,13 +112,7 @@ type JojiInt struct {
 }
 
 func (obj *JojiInt) GetType() (*JojiType, error) {
-	return &JojiType{
-		SupportsInt:   true,
-		SupportsStr:   true,
-		SupportsFloat: true,
-		IsDictType:    false,
-		Fields:        nil,
-	}, nil
+	return &JojiIntType, nil
 }
 
 func (obj *JojiInt) GetInt() (int64, error) {
@@ -131,10 +146,60 @@ func (obj *JojiInt) SetFloat(value float64) error {
 	return nil
 }
 
-func (obj *JojiInt) GetField(name string) (JojiObject, error) {
+func (obj *JojiInt) GetField(name string) (*JojiObject, error) {
 	return nil, errors.New("jojiVM: Error: ints do not support fields")
 }
 
-func (obj *JojiInt) SetField(name string, value JojiObject) error {
+func (obj *JojiInt) SetField(name string, value *JojiObject) error {
 	return errors.New("jojiVM: Error: ints do not support fields")
 }
+
+//End of JojiInt type - beginning of JojiFloat type
+
+type JojiFloat struct {
+	value float64
+}
+
+func (obj *JojiFloat) GetType() (*JojiType, error) {
+	return &JojiFloatType, nil
+}
+
+func (obj *JojiFloat) GetFloat() (float64, error) {
+	return obj.value, nil
+}
+
+func (obj *JojiFloat) GetInt() (int64, error) {
+	f := math.Floor(obj.value)
+	return int64(f), nil
+}
+
+func (obj *JojiFloat) GetStr() (string, error) {
+	return fmt.Sprintf("%f", obj.value), nil
+}
+
+func (obj *JojiFloat) SetFloat(value float64) error {
+	obj.value = value
+	return nil
+}
+
+func (obj *JojiFloat) SetInt(value int64) error {
+	obj.value = float64(value)
+	return nil
+}
+
+func (obj *JojiFloat) SetStr(value string) error {
+	f, err := strconv.ParseFloat(value, 64)
+	errorCheck(err)
+	obj.value = f
+	return nil
+}
+
+func (obj *JojiFloat) GetField(name string) (*JojiObject, error) {
+	return nil, errors.New("jojiVM: Error: float objects do not support fields")
+}
+
+func (obj *JojiFloat) SetField(name string, value *JojiObject) error {
+	return errors.New("jojiVM: Error: float objects do not support fields")
+}
+
+//end JojiFloat type
